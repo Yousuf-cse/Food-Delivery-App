@@ -1,1 +1,1 @@
-export const DB_NAME = "backendDB";
+export const DB_NAME = "tomato-database";
