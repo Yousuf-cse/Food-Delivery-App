@@ -1,7 +1,8 @@
 import express from "express";
 const app = express();
 import cors from "cors";
-import exampleRouter from "./routes/example.routes.js";
+import cookieParser from "cookie-parser"
+import userRouter from "./routes/user.routes.js";
 import globalErrorHandler from "./middlewares/globalErrorHandler.js";
 
 app.use(cors({
@@ -10,12 +11,15 @@ app.use(cors({
 }));
 app.use(express.json({limit: "16kb"}))
 app.use(express.urlencoded({extended: true, limit: "16kb"}));
+app.use(cookieParser());
 
 
 app.get("/", (req, res) => {
   res.send("Hello from the backend server!");
 });
-app.use("/example", exampleRouter);
+
+app.use("/api/v1/user", userRouter);
+
 app.use(globalErrorHandler);
 
 export {app};
