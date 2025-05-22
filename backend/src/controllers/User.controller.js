@@ -4,6 +4,7 @@ import {ApiResponse} from "../utils/ApiResponse.js";
 import { User } from "../models/User.model.js";
 import jwt from "jsonwebtoken";
 
+
 const generateAccessTokenAndRefreshToken = async (userId) => {
     try {
       const user = await User.findById(userId)
@@ -32,43 +33,55 @@ const generateAccessTokenAndRefreshToken = async (userId) => {
 
 // register user
 const registerUser = asyncHandler( async (req, res) => {
- 
-  const {username, email, password } = req.body
- 
-  if (
-       [username, email, password].some((field) => field?.trim() === "")
-  ) {
-       throw new ApiError(400, "All fields are required")
-  }
- 
-   const existedUser = await User.findOne({
-     $or: [{ username }, {email }]
-   })
- 
-   if (existedUser) {
-     throw new ApiError(409, "This username or email already exists")
-   }
+  let createdUser;
+  try {
+    console.log("request body",req.body);
+    const {username, email, password } = req.body
+    
+    console.log("username",username);
+    console.log("email",email);
+    console.log("password",password);
+    
    
-   if (!avatar) {
-     throw new ApiError("400", "Error!! upload avatar again")
-   }
-   
- 
-   // create user object - create entry in db
-   const user= await User.create({
-      username: username.toLowerCase(), 
-      email,
-      password,
-   })
- 
-    // check that user sucessfully created in db or not & remove password and refresh token field from response
-    const createdUser= await User.findById(user._id).select(
-     "-password -refreshToken"
-    )
- 
-    if (!createdUser) {
-     throw new ApiError(500, "something went wrong while registering the user")
+    if (
+         [username, email, password].some((field) => field?.trim() === "")
+    ) {
+         throw new ApiError(400, "All fields are required")
     }
+   
+     const existedUser = await User.findOne({
+       $or: [{ username }, {email }]
+     })
+   
+     if (existedUser) {
+       throw new ApiError(409, "This username or email already exists")
+     }
+     
+   
+     // create user object - create entry in db
+     let user;
+     try {
+      user= await User.create({
+         username: username.toLowerCase(), 
+         email,
+         password,
+      })
+     } catch (error) {
+      console.error("error",error);
+      throw new ApiError(500, "something went wrong while creating user or username or email already exists")
+     }
+   
+      // check that user sucessfully created in db or not & remove password and refresh token field from response
+      createdUser= await User.findById(user._id).select(
+       "-password -refreshToken"
+      )
+   
+      if (!createdUser) {
+       throw new ApiError(500, "something went wrong while registering the user")
+      }
+  } catch (error) {
+    console.error("error",error);
+  }
  
     // return res
     return res.status(201).json(
